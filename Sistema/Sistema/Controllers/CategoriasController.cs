@@ -19,12 +19,19 @@ namespace Sistema.Controllers
         }
 
         // GET: Categorias
-        public async Task<IActionResult> Index(string ordenarFilas)
+        public async Task<IActionResult> Index(string ordenarFilas, string cadenaBusqueda)
         {
             ViewData["NombreParametroOrdenamiento"] = String.IsNullOrEmpty(ordenarFilas) ? "nombreDescendiente" : "";
             ViewData["DescripcionParametroOrdenamiento"] = ordenarFilas == "descripcionAscendente" ? "descripcionDescendente" : "descripcionAscendente";
+            ViewData["FiltroBusqueda"] = cadenaBusqueda;
+
             var categorias = from c in _context.Categoria
                              select c;
+
+            if (!String.IsNullOrEmpty(cadenaBusqueda))
+            {
+                categorias = categorias.Where(c => c.Nombre.Contains(cadenaBusqueda) || c.Descripcion.Contains(cadenaBusqueda));
+            }
 
             switch (ordenarFilas)
             {
@@ -41,6 +48,8 @@ namespace Sistema.Controllers
                     categorias = categorias.OrderBy(c => c.Nombre);
                     break;
             }
+
+
             return View(await categorias.AsNoTracking().ToListAsync());
             //return View(await _context.Categoria.ToListAsync());
         }
