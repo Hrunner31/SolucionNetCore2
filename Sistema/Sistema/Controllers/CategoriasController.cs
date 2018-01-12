@@ -19,9 +19,30 @@ namespace Sistema.Controllers
         }
 
         // GET: Categorias
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string ordenarFilas)
         {
-            return View(await _context.Categoria.ToListAsync());
+            ViewData["NombreParametroOrdenamiento"] = String.IsNullOrEmpty(ordenarFilas) ? "nombreDescendiente" : "";
+            ViewData["DescripcionParametroOrdenamiento"] = ordenarFilas == "descripcionAscendente" ? "descripcionDescendente" : "descripcionAscendente";
+            var categorias = from c in _context.Categoria
+                             select c;
+
+            switch (ordenarFilas)
+            {
+                case ("nombreDescendiente"):
+                    categorias = categorias.OrderByDescending(c => c.Nombre);
+                    break;
+                case ("descripcionDescendente"):
+                    categorias = categorias.OrderByDescending(c => c.Descripcion);
+                    break;
+                case ("descripcionAscendente"):
+                    categorias = categorias.OrderBy(c => c.Descripcion);
+                    break;
+                default:
+                    categorias = categorias.OrderBy(c => c.Nombre);
+                    break;
+            }
+            return View(await categorias.AsNoTracking().ToListAsync());
+            //return View(await _context.Categoria.ToListAsync());
         }
 
         // GET: Categorias/Details/5
