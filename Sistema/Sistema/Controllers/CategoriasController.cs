@@ -19,11 +19,20 @@ namespace Sistema.Controllers
         }
 
         // GET: Categorias
-        public async Task<IActionResult> Index(string ordenarFilas, string cadenaBusqueda)
+        public async Task<IActionResult> Index(string ordenarFilas, string currentFilter, string cadenaBusqueda, int? page)
         {
             ViewData["NombreParametroOrdenamiento"] = String.IsNullOrEmpty(ordenarFilas) ? "nombreDescendiente" : "";
             ViewData["DescripcionParametroOrdenamiento"] = ordenarFilas == "descripcionAscendente" ? "descripcionDescendente" : "descripcionAscendente";
-            ViewData["FiltroBusqueda"] = cadenaBusqueda;
+            if(cadenaBusqueda != null)
+            {
+                page = 1;
+            }
+            else
+            {
+                cadenaBusqueda = currentFilter;
+            }
+            ViewData["currentFilter"] = cadenaBusqueda;
+            ViewData["CurrentSort"] = ordenarFilas;
 
             var categorias = from c in _context.Categoria
                              select c;
@@ -48,10 +57,11 @@ namespace Sistema.Controllers
                     categorias = categorias.OrderBy(c => c.Nombre);
                     break;
             }
-
-
-            return View(await categorias.AsNoTracking().ToListAsync());
+            //return View(await categorias.AsNoTracking().ToListAsync());
             //return View(await _context.Categoria.ToListAsync());
+
+            int pageSize = 3;
+            return View(await Paginacion<Categoria>.CreateAsync(categorias.AsNoTracking(), page ?? 1, pageSize));
         }
 
         // GET: Categorias/Details/5
